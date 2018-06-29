@@ -34,7 +34,7 @@
 
 2. Sheet에서 1~5번행은 항상 지켜져야 함.
 
-> 2번의 경우에는 추후 추가될 `PyExcelToCS`에 필요한 규칙이므로 그대로 따라간다.
+> 2번의 경우에는 [`PyExcelToBSON`](https://github.com/onsemy/PyExcelToBSON)에 필요한 규칙이므로 그대로 따라간다.
 
 - 1번행: 해당 열에 대한 설명
 - 2번행: 해당 열의 용도 (사용되지 않을 예정)
