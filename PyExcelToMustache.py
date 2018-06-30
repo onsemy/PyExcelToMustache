@@ -54,6 +54,7 @@ class ClassDeclare(object):
 def set_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="path of excel file", required=True)
+    parser.add_argument("-t", "--template", help="path of mustache file", required=False)
     parser.add_argument("-o", "--output", help="path of output directory", required=False)
     parser.add_argument("-c", "--clean", help="clean up output", action="store_true")
     args = parser.parse_args()
@@ -83,7 +84,10 @@ wb = open_workbook(args.input)
 
 # load mustache template
 class_template = ""
-with open("class.mustache") as class_file:
+class_template_path = "class.mustache"
+if args.template:
+    class_template_path = args.template
+with open(class_template_path) as class_file:
     class_template = class_file.read()
 
 if class_template == "":
