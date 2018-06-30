@@ -50,7 +50,7 @@
 
 2. 적절한 인자 값을 넣고 ```PyExcelToMustache.py```을 실행한다. 인자를 넣는 순서는 상관없다.
 
-- ```-i```, ```--input```: Excel(xlsx) 경로와 파일 이름
+- ```-i```, ```--input```: Excel(xlsx) 경로와 파일 이름. **실행 시 반드시 입력해야 한다.**
 - ```-t```, ```--template```: Mustache Template 파일의 경로. 지정하지 않을 시 `class.mustache`로 정의 됨
 - ```-o```, ```--output```: `output`폴더의 경로를 지정. 지정하지 않을 시 `Script Root`로 정의 됨
 - ```-c```, ```--clean```: `output`폴더 정리
