@@ -54,7 +54,7 @@ class ClassDeclare(object):
 def set_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="path of excel file", required=True)
-    parser.add_argument("-o", "--output", help="path of output directory", action="store_const", required=False)
+    parser.add_argument("-o", "--output", help="path of output directory", required=False)
     parser.add_argument("-c", "--clean", help="clean up output", action="store_true")
     args = parser.parse_args()
     if not args.input:
@@ -125,10 +125,12 @@ for sheet in wb.sheets():
         primary_index = primary_index + 1
 
     row = sheet.row(3)
-    type_list.append(col.value for col in row)
+    for col in row:
+        type_list.append(col.value)
 
     row = sheet.row(4)
-    val_list.append(col.value for col in row)
+    for col in row:
+        val_list.append(col.value)
 
     # generate cs file
     context = get_class_declare(sheet.name, primary_index, type_list, val_list)
