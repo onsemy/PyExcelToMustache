@@ -1,2 +1,2 @@
+openpyxl==2.5.12
 pystache==0.5.4
-xlrd==1.2.0

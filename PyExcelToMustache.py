@@ -8,7 +8,7 @@ import shutil
 import datetime
 
 import pystache
-from xlrd import open_workbook
+from openpyxl import load_workbook
 
 # data model
 class Attribute(object):
@@ -56,6 +56,8 @@ def set_parser():
     parser.add_argument("-i", "--input", help="path of excel file", required=True)
     parser.add_argument("-t", "--template", help="path of mustache file", required=False)
     parser.add_argument("-o", "--output", help="path of output directory", required=False)
+    parser.add_argument("-p", "--prefix", help="add prefix in output files", required=False)
+    parser.add_argument("-e", "--ext", help="set filename extension", required=True)
     parser.add_argument("-c", "--clean", help="clean up output", action="store_true")
     args = parser.parse_args()
     if not args.input:
@@ -80,13 +82,14 @@ def get_class_declare(class_name, primary_index, types, names):
 
 
 args = set_parser()
-wb = open_workbook(args.input)
+wb = load_workbook(filename=args.input, data_only=True)
 
 # load mustache template
 class_template = ""
 class_template_path = "class.mustache"
 if args.template:
     class_template_path = args.template
+
 with open(class_template_path) as class_file:
     class_template = class_file.read()
 
@@ -105,13 +108,13 @@ if os.path.exists(output_path):
 else:
     os.mkdir(output_path)
 
-for sheet in wb.sheets():
-    if sheet.name[0] == '_':
-        print("INFO] skipped sheet - " + sheet.name)
+for sheet in wb:
+    if sheet.title[0] == '_':
+        print("INFO] skipped sheet - " + sheet.title)
         continue
 
     json_dict = {}
-    print("INFO] start convert sheet - {}".format(sheet.name))
+    print("INFO] start convert sheet - {}".format(sheet.title))
 
     data_list = []
     key_list = []
@@ -119,33 +122,52 @@ for sheet in wb.sheets():
     type_list = []
     val_list = []
 
-    # NOTE(jjo): Primary Key를 찾기위한 여정
-    row = sheet.row(2)
+    row_index = -1
     primary_index = 0
-    for col in row:
-        if col.value == 'PrimaryKey':
-            break
+
+    for row in sheet:
+        row_index = row_index + 1
+
+        # NOTE(jjo): Primary Key를 찾기위한 여정
+        if row_index == 2:
+            for col in row:
+                if col.value is None or col.value == 'PrimaryKey':
+                    break
+                primary_index = primary_index + 1
+
+        # NOTE(jjo): 자료형을 싹 조사
+        elif row_index == 3:
+            for col in row:
+                if col.value is None:
+                    break
+                type_list.append(col.value)
+
+        # NOTE(jjo): 변수명을 싹 조사
+        elif row_index == 4:
+            for col in row:
+                if col.value is None:
+                    break
+                val_list.append(col.value)
         
-        primary_index = primary_index + 1
-
-    row = sheet.row(3)
-    for col in row:
-        type_list.append(col.value)
-
-    row = sheet.row(4)
-    for col in row:
-        val_list.append(col.value)
+        # NOTE(jjo): 이후에는 볼 일이 없으므로 끝.
+        elif row_index > 4:
+            break
 
     # generate cs file
-    context = get_class_declare(sheet.name, primary_index, type_list, val_list)
+    context = get_class_declare(sheet.title, primary_index, type_list, val_list)
     render_result = pystache.render(class_template, context)
-    with open("{}/class_{}.cs".format(output_path, sheet.name), "w") as class_render:
+
+    if args.prefix is None:
+        args.prefix = ''
+    output_template_name = '{}/{}{}.{}'.format(output_path, args.prefix, sheet.title, args.ext)
+
+    with open(output_template_name, "w") as class_render:
         class_render.write(render_result)
 
-    print("INFO] end convert process - {}".format(sheet.name))
+    print("INFO] end convert process - {}".format(sheet.title))
 
     # NOTE(jjo): for test
-    #with open(sheet.name + '.bson', 'rb') as bson_f:
+    #with open(sheet.title + '.bson', 'rb') as bson_f:
     #    data = bson_f.read()
     #    print(bson.loads(data))
 
