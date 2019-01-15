@@ -51,13 +51,26 @@ class ClassDeclare(object):
         return self._date
 
 
+class ClassList(object):
+    def __init__(self, date):
+        self._class_list = []
+        self._date = date
+
+    def add(self, class_declare):
+        self._class_list.append(class_declare)
+
+    def class_list(self):
+        return self._class_list
+
+    def date(self):
+        return self._date
+
+
 def set_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="path of excel file", required=True)
     parser.add_argument("-t", "--template", help="path of mustache file", required=False)
-    parser.add_argument("-o", "--output", help="path of output directory", required=False)
-    parser.add_argument("-p", "--prefix", help="add prefix in output files", required=False)
-    parser.add_argument("-e", "--ext", help="set filename extension", required=True)
+    parser.add_argument("-o", "--output", help="path of output file", required=True)
     parser.add_argument("-c", "--clean", help="clean up output", action="store_true")
     args = parser.parse_args()
     if not args.input:
@@ -108,6 +121,8 @@ if os.path.exists(output_path):
 else:
     os.mkdir(output_path)
 
+class_list = ClassList(datetime.datetime.now())
+
 for sheet in wb:
     if sheet.title[0] == '_':
         print("INFO] skipped sheet - " + sheet.title)
@@ -153,21 +168,20 @@ for sheet in wb:
         elif row_index > 4:
             break
 
-    # generate cs file
+    # store class data
     context = get_class_declare(sheet.title, primary_index, type_list, val_list)
-    render_result = pystache.render(class_template, context)
+    class_list.add(context)
 
-    if args.prefix is None:
-        args.prefix = ''
-    output_template_name = '{}/{}{}.{}'.format(output_path, args.prefix, sheet.title, args.ext)
+# generate cs file
+render_result = pystache.render(class_template, context)
 
-    with open(output_template_name, "w") as class_render:
-        class_render.write(render_result)
+with open(output_path, "w") as class_render:
+    class_render.write(render_result)
 
-    print("INFO] end convert process - {}".format(sheet.title))
+print("INFO] end convert process - {}".format(sheet.title))
 
-    # NOTE(jjo): for test
-    #with open(sheet.title + '.bson', 'rb') as bson_f:
-    #    data = bson_f.read()
-    #    print(bson.loads(data))
+# NOTE(jjo): for test
+#with open(sheet.title + '.bson', 'rb') as bson_f:
+#    data = bson_f.read()
+#    print(bson.loads(data))
 
