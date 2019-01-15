@@ -20,10 +20,11 @@ class Attribute(object):
 
 
 class ClassMember(object):
-    def __init__(self, attributes: Attribute, data_type: str, name: str):
+    def __init__(self, attributes: Attribute, data_type: str, name: str, is_primary_key: bool):
         self._attributes = attributes
         self._type = data_type
         self._name = name
+        self._is_primary_key = is_primary_key
 
     def type_name(self):
         return self._type
@@ -33,6 +34,9 @@ class ClassMember(object):
 
     def attributes(self):
         return self._attributes
+
+    def IsPrimaryKey(self):
+        return self._is_primary_key
 
 
 class ClassDeclare(object):
@@ -86,7 +90,7 @@ def get_class_declare(class_name, primary_index, types, names):
         attributes = []
         if i == primary_index:
             attributes.append(Attribute("PrimaryKey"))
-        item = ClassMember(attributes, types[i], names[i])
+        item = ClassMember(attributes, types[i], names[i], i == primary_index)
         if item is not None:
             lst.append(item)
 
@@ -162,7 +166,7 @@ for sheet in wb:
     class_list.add(context)
 
 # generate cs file
-render_result = pystache.render(class_template, context)
+render_result = pystache.render(class_template, class_list)
 
 with open(args.output, "w") as class_render:
     class_render.write(render_result)
