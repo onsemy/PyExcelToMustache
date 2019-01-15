@@ -69,7 +69,7 @@ class ClassList(object):
 def set_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="path of excel file", required=True)
-    parser.add_argument("-t", "--template", help="path of mustache file", required=False)
+    parser.add_argument("-t", "--template", help="path of mustache file", required=True)
     parser.add_argument("-o", "--output", help="path of output file", required=True)
     parser.add_argument("-c", "--clean", help="clean up output", action="store_true")
     args = parser.parse_args()
@@ -99,27 +99,16 @@ wb = load_workbook(filename=args.input, data_only=True)
 
 # load mustache template
 class_template = ""
-class_template_path = "class.mustache"
-if args.template:
-    class_template_path = args.template
-
-with open(class_template_path) as class_file:
+with open(args.template) as class_file:
     class_template = class_file.read()
 
 if class_template == "":
     print("class template is empty!")
     exit(1)
 
-output_path = "output"
-if args.output:
-    output_path = args.output
-
-if os.path.exists(output_path):
+if os.path.exists(args.output):
     if args.clean:
-        shutil.rmtree(output_path, ignore_errors=True)
-        os.mkdir(output_path)
-else:
-    os.mkdir(output_path)
+        os.remove(args.output)
 
 class_list = ClassList(datetime.datetime.now())
 
@@ -175,7 +164,7 @@ for sheet in wb:
 # generate cs file
 render_result = pystache.render(class_template, context)
 
-with open(output_path, "w") as class_render:
+with open(args.output, "w") as class_render:
     class_render.write(render_result)
 
 print("INFO] end convert process - {}".format(sheet.title))
